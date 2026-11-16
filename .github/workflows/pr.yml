@@ -2,7 +2,7 @@ name: PR
 
 on:
   pull_request:
-    branches: [main]
+    branches: [main, 'release/**']
 
 jobs:
   test:
@@ -14,3 +14,13 @@ jobs:
           go-version-file: go.mod
       - run: go vet ./...
       - run: go test ./...
+
+  # The only required check in the ruleset. Add new jobs to `needs`; jobs skipped via `if:` don't fail it.
+  ci-ok:
+    if: always()
+    needs: [test]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fail if a required job failed
+        if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')
+        run: exit 1

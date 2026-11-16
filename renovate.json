@@ -1,0 +1,26 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended"],
+  "baseBranchPatterns": ["$default", "/^release\\/.+/"],
+  "dependencyDashboard": false,
+  "automerge": true,
+  "platformAutomerge": false,
+  "osvVulnerabilityAlerts": true,
+  "vulnerabilityAlerts": {
+    "enabled": true,
+    "automerge": true,
+    "labels": ["security"]
+  },
+  "packageRules": [
+    {
+      "description": "Bump the go directive so CI (setup-go reads go.mod) builds with the latest patch",
+      "matchDatasources": ["golang-version"],
+      "rangeStrategy": "bump"
+    },
+    {
+      "description": "LTS branches only receive security fixes",
+      "matchBaseBranches": ["/^release\\/.+/"],
+      "enabled": false
+    }
+  ]
+}
