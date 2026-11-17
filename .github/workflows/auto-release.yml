@@ -19,32 +19,38 @@ jobs:
         with:
           client-id: ${{ vars.AUTOMATION_APP_CLIENT_ID }}
           private-key: ${{ secrets.AUTOMATION_APP_KEY }}
-      - name: Only for merged Renovate PRs
+      - name: Batch Renovate merges
         id: check
         env:
           GH_TOKEN: ${{ steps.app.outputs.token }}
         run: |
           ref=$(gh api "repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/pulls" --jq '.[0].head.ref // ""')
-          [[ "$ref" == renovate/* ]] || { echo "not a Renovate merge ($ref), skipping"; exit 0; }
-          pending=$(gh pr list -R "$GITHUB_REPOSITORY" --base "$GITHUB_REF_NAME" --state open \
-            --json headRefName,statusCheckRollup \
-            --jq '[.[] | select(.headRefName | startswith("renovate/"))
-                   | select(any(.statusCheckRollup[]; (.conclusion // .state) | IN("FAILURE","ERROR","CANCELLED","TIMED_OUT")) | not)] | length')
-          [[ "$pending" == 0 ]] && echo "renovate=true" >> "$GITHUB_OUTPUT" || echo "$pending Renovate PR(s) still open, deferring release"
+          if [[ "$ref" == renovate/* ]]; then
+            pending=$(gh pr list -R "$GITHUB_REPOSITORY" --base "$GITHUB_REF_NAME" --state open \
+              --json headRefName,statusCheckRollup \
+              --jq '[.[] | select(.headRefName | startswith("renovate/"))
+                     | select(any(.statusCheckRollup[]; (.conclusion // .state) | IN("FAILURE","ERROR","CANCELLED","TIMED_OUT")) | not)] | length')
+            [[ "$pending" == 0 ]] || { echo "$pending Renovate PR(s) still open, deferring release"; exit 0; }
+          fi
+          echo "release=true" >> "$GITHUB_OUTPUT"
       - uses: actions/checkout@v7
-        if: steps.check.outputs.renovate
+        if: steps.check.outputs.release
         with:
           fetch-depth: 0
           token: ${{ steps.app.outputs.token }}
-      - name: Tag next patch version
-        if: steps.check.outputs.renovate
+      - name: Tag next version
+        if: steps.check.outputs.release
         run: |
-          latest=$(git describe --tags --abbrev=0 --match 'v*')
-          if git diff --quiet "$latest" HEAD -- . ':!.github'; then
-            echo "no source changes since $latest, skipping"; exit 0
+          line=${GITHUB_REF_NAME#release/}
+          if latest=$(git describe --tags --abbrev=0 --match "v$line.*" 2>/dev/null); then
+            if git diff --quiet "$latest" HEAD -- '*.go' ':!*_test.go' go.mod go.sum; then
+              echo "no source changes since $latest, skipping"; exit 0
+            fi
+            next="v$line.$((${latest##*.} + 1))"
+          else
+            latest="no v$line tag"
+            next="v$line.0"
           fi
-          IFS=. read -r major minor patch <<< "${latest#v}"
-          next="v${major}.${minor}.$((patch + 1))"
           echo "$latest -> $next"
           git tag "$next"
           git push origin "$next"
