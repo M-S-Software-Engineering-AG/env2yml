@@ -1,11 +1,11 @@
-name: Auto release
+name: Auto tag
 
 on:
   push:
     branches: ['release/**']
 
 concurrency:
-  group: auto-release-${{ github.ref }}
+  group: auto-tag-${{ github.ref }}
   cancel-in-progress: false
 
 permissions: {}
