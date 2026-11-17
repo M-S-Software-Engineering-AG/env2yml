@@ -10,3 +10,6 @@
 - **Never commit unless explicitly asked.** "Copy to main" means put the files on
   the main branch's working tree, not commit. Leave changes uncommitted and let
   the user review and commit. (2026-11-16)
+- **Build the mechanism the user names.** When the user asks for a specific
+  mechanism ("a min version"), implement that instead of substituting a simpler
+  alternative (an explicit branch list) and arguing for it. (2026-11-17)
