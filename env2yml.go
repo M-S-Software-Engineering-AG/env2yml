@@ -1,4 +1,4 @@
-package envelope
+package env2yml
 
 import (
 	"fmt"

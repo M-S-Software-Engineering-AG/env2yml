@@ -23,10 +23,10 @@ jobs:
           export GOARM=7  # only read when GOARCH=arm
           for target in linux/amd64 linux/arm64 linux/arm darwin/amd64 darwin/arm64 windows/amd64 windows/arm64; do
             export GOOS=${target%/*} GOARCH=${target#*/}
-            out="dist/envelope-${GOOS}-${GOARCH}"
+            out="dist/env2yml-${GOOS}-${GOARCH}"
             [ "$GOARCH" = arm ] && out="${out}v7"
             [ "$GOOS" = windows ] && out="$out.exe"
-            go build -ldflags "-s -w" -o "$out" ./cmd/envelope
+            go build -ldflags "-s -w" -o "$out" ./cmd/env2yml
           done
       - name: Trivy scan
         uses: aquasecurity/trivy-action@v0.36.0

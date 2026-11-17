@@ -6,7 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/BaseCrusher/envelope"
+	"github.com/M-S-Software-Engineering-AG/env2yml"
 )
 
 func main() {
@@ -14,7 +14,7 @@ func main() {
 	out := flag.String("out", "", "write YAML to this file instead of stdout")
 	flag.Parse()
 
-	doc, err := envelope.Marshal(os.Environ(), *prefix)
+	doc, err := env2yml.Marshal(os.Environ(), *prefix)
 	if err == nil {
 		if *out == "" {
 			_, err = os.Stdout.Write(doc)
@@ -23,7 +23,7 @@ func main() {
 		}
 	}
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "envelope:", err)
+		fmt.Fprintln(os.Stderr, "env2yml:", err)
 		os.Exit(1)
 	}
 }

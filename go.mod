@@ -1,4 +1,4 @@
-module github.com/BaseCrusher/envelope
+module github.com/M-S-Software-Engineering-AG/env2yml
 
 go 1.27.4
 

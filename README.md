@@ -1,4 +1,4 @@
-# envelope
+# env2yml
 
 Turn environment variables into a YAML document. Use it as a command that
 prints YAML to stdout, or as a Go library that hands you the parsed tree.
@@ -11,7 +11,7 @@ manifest or a cluster manager UI, while a config file has to be baked into the
 image or mounted from somewhere. But applications want structured config —
 nested sections, lists — and an environment is flat.
 
-envelope treats the variable name as a path into a YAML document, so the flat
+env2yml treats the variable name as a path into a YAML document, so the flat
 environment can describe an arbitrarily nested structure. It is the same idea
 [container-supervisor](https://github.com/BaseCrusher/container-supervisor) uses
 for its `SUPERVISOR_`-prefixed overrides, pulled out into its own tool and
@@ -20,7 +20,7 @@ extended with lists.
 ## Usage
 
 ```
-envelope [-prefix PREFIX] > config.yml
+env2yml [-prefix PREFIX] > config.yml
 ```
 
 - `-prefix` — only convert variables whose name starts with this prefix. The
@@ -35,7 +35,7 @@ export APP_PROCESSES__DB__PORT=5432
 export APP_PROCESSES__DB__ARGUMENTS__0=--verbose
 export APP_PROCESSES__DB__ARGUMENTS__1='--limit 10'
 
-envelope -prefix APP_
+env2yml -prefix APP_
 ```
 
 ```yaml
@@ -104,7 +104,7 @@ environment does not describe a valid document:
 ## As a library
 
 ```
-go get github.com/BaseCrusher/envelope
+go get github.com/M-S-Software-Engineering-AG/env2yml
 ```
 
 `Marshal` gives you the document as YAML bytes, `Parse` gives you the tree
@@ -118,7 +118,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/BaseCrusher/envelope"
+	"github.com/M-S-Software-Engineering-AG/env2yml"
 	"gopkg.in/yaml.v3"
 )
 
@@ -128,7 +128,7 @@ type Config struct {
 }
 
 func main() {
-	out, err := envelope.Marshal(os.Environ(), "APP_")
+	out, err := env2yml.Marshal(os.Environ(), "APP_")
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
@@ -154,9 +154,9 @@ in a build stage and never ship in the final image:
 
 ```dockerfile
 FROM alpine AS config
-COPY envelope /usr/local/bin/
+COPY env2yml /usr/local/bin/
 ARG APP_LOGLEVEL=info
-RUN envelope -prefix APP_ > /config.yml
+RUN env2yml -prefix APP_ > /config.yml
 
 FROM gcr.io/distroless/static-debian12
 COPY --from=config /config.yml /etc/app/config.yml
@@ -166,7 +166,7 @@ Or ship it and run it at startup, so the environment of the running container
 decides the config:
 
 ```sh
-envelope -prefix APP_ > /etc/app/config.yml && exec /bin/app
+env2yml -prefix APP_ > /etc/app/config.yml && exec /bin/app
 ```
 
 ## Not supported
@@ -184,6 +184,6 @@ YAML features with no place to live in a variable name or value:
 ## Building
 
 ```sh
-go build ./cmd/envelope
+go build ./cmd/env2yml
 go test ./...
 ```
